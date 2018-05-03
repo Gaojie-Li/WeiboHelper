@@ -8,7 +8,7 @@ bash ./install.sh
 ## Repost
 ### Required file
 1. config.txt/config_test.txt
-Username and password saved in these two files. Using delimiter of "-----".
+Username and password saved in these two files. Using delimiter of "----".
 
 E.g.:
 MyUserName----MyPassWord
