@@ -3,13 +3,44 @@ from selenium.webdriver.common.keys import Keys
 import time
 
 
-def read(uname, upass, tweets):
+def init_driver():
+    WINDOW_WIDTH=600
+    WINDOW_HEIGHT=500
+    headless = False
+    incognito = True
+    proxy = False
+    ip, port = 0,0
+
     chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument("--incognito")
-    # chrome_options.add_argument('--headless')
-    chrome_options.add_argument('--proxy-server=http://39.134.68.22:80')
+    if incognito:
+        chrome_options.add_argument("--incognito")
+    if headless:
+        chrome_options.add_argument('--headless')
+    if proxy:
+        chrome_options.add_argument('--proxy-server=http://{0}:{1}'.format(ip, port))
+
     driver = webdriver.Chrome(chrome_options=chrome_options)
-    driver.set_window_size(600,500)
+    driver.set_window_size(WINDOW_WIDTH,WINDOW_HEIGHT)
+
+    return driver
+
+def readOnly(tweets, freq, count):
+    driver = init_driver()
+    for i in range(count):
+        print("="*20)
+        print("READ ROUND {0}".format(i+1))
+        tCount = 0
+        for tweet_url in tweets:
+            print("OPEN TWEET {0}".format(tCount+1))
+            driver.get(tweet_url)
+            print("WAIT")
+            time.sleep(freq)
+            tCount += 1
+
+
+
+def read(uname, upass, tweets):
+    driver = init_driver()
 
     driver.get('http://httpbin.org/ip')
     print(driver.page_source)

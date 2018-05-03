@@ -4,12 +4,12 @@ from selenium import webdriver
 users = {}
 tweets = []
 
-test = True
+test = False
 
 if test:
-    config_file = "user_config_test.txt"
+    config_file = "config/user_config_test.txt"
 else:
-    config_file = "user_config.txt"
+    config_file = "config/user_config.txt"
 
 
 with open(config_file,"r") as file:
@@ -25,4 +25,5 @@ with open("tweets.txt","r") as file:
 
 
 for u in users.keys():
-    sina.read(u, users[u], tweets)
+    # sina.read(u, users[u], tweets)
+    sina.readOnly(tweets, 15, 30)
