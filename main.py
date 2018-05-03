@@ -7,9 +7,9 @@ tweets = []
 test = False
 
 if test:
-    config_file = "config/user_config_test.txt"
+    config_file = "config.txt"
 else:
-    config_file = "config/user_config.txt"
+    config_file = "config.txt"
 
 
 with open(config_file,"r") as file:
