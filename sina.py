@@ -85,7 +85,7 @@ def read(uname, upass, tweets):
     driver.quit()
     print("-----close browser-----")
 
-def repost(uname, upass, tweet_url, lyrics, comment=False):
+def repost(uname, upass, tweet_url, lyrics, comment=False, upper_bound=5):
     driver = init_driver()
     login(uname, upass, driver)
 
@@ -102,14 +102,21 @@ def repost(uname, upass, tweet_url, lyrics, comment=False):
 
     repost_message = repost_field.get_attribute('value')
     print(repost_message)
-
-    for i in range(5):
-        temp =  lyrics[i] + repost_message
-        repost_field.clear()
-        time.sleep(5)
-        repost_field.send_keys(temp)
-        repost_btn.click()
-        time.sleep(10 + random.randint(0,10))
+    lyrics_id = random.randint(0, len(lyrics)-1)
+    print("SONG chosen: ", lyrics[lyrics_id])
+    with open(lyrics[lyrics_id],"r") as file:
+        i = 0
+        for line in file:
+            if i >= upper_bound:
+                break
+            temp =  line.strip() + repost_message
+            repost_field.clear()
+            time.sleep(5)
+            repost_field.send_keys(temp)
+            repost_btn.click()
+            print("REPOST({0}) DONE".format(i+1))
+            time.sleep(10 + random.randint(0,10))
+            i += 1
 
     driver.quit()
 

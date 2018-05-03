@@ -1,5 +1,6 @@
 import sina
 from selenium import webdriver
+import os
 
 users = {}
 tweets = []
@@ -23,11 +24,15 @@ with open("Data/tweets.txt","r") as file:
     for line in file:
         tweets.append(line.strip())
 
-with open("Data/MackDaddy.txt","r") as file:
+if os.path.exists("lyrics.list"):
+    os.system("rm lyrics.list")
+os.system("for t in lyrics/*.txt; do greadlink -f $t>>lyrics.list;done;")
+
+with open("lyrics.list","r") as file:
     for line in file:
         lyrics.append(line.strip())
 
 for u in users.keys():
     # sina.read(u, users[u], tweets)
     # sina.readOnly(tweets, 15, 30)
-    sina.repost(u, users[u], tweets[1], lyrics, comment=False)
+    sina.repost(u, users[u], tweets[0], lyrics, comment=False)
