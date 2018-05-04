@@ -18,6 +18,8 @@ To run:
 python main.py
 ```
 
-##TODO
+## TODO
 - [ ] Store Cookies
 - [x] Check repost message length
+- [ ] IP issues
+- [ ] Get Page response
