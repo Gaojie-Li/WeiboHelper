@@ -1,4 +1,5 @@
 import sina
+import cookies
 from selenium import webdriver
 import os
 
@@ -43,9 +44,11 @@ else:
 
 
 for u in users.keys():
+    cookies.saveCookies(u, users[u])
+    driver = cookies.loadCookies(u)
     # sina.read(u, users[u], tweets)
     # sina.readOnly(tweets, 15, 30)
     if repost_lyrics:
-        sina.repostLyrics(u, users[u], tweets[-1], lyrics, comment=False)
+        sina.repostLyrics(driver, tweets[-1], lyrics, comment=False)
     else:
-        sina.repost(u, users[u], tweets[-1], reposts, comment=False)
+        sina.repost(driver, tweets[-1], reposts, comment=True)
