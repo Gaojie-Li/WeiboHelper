@@ -19,19 +19,21 @@ python main.py
 ```
 
 ## Check local lyrics file generate by NetEase Music
-run
+To check which of the local caches generate by NetEase Music are lyrics files:
 ```
 bash ./checkLyrics.sh
 ```
 
 
 ## Generate txt file for lyrics
-This will generate txt files from lrc files listed in netease.list. Currently lyrics are stored using numbers.
-- [ ] Need to find a way to get song titles
-run
+
+To convert lrc files to txt files:
 ```
 python get_lyrics.py
 ```
+
+This will generate txt files from lrc files listed in netease.list. Currently lyrics are stored using numbers.
+- [ ] Need to find a way to get song titles
 
 ## TODO
 - [ ] Store Cookies
