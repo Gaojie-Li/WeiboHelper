@@ -17,3 +17,7 @@ To run:
 ```
 python main.py
 ```
+
+##TODO
+- [ ] Store Cookies
+- [x] Check repost message length
