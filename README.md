@@ -20,4 +20,4 @@ python main.py
 
 ##TODO
 - [ ] Store Cookies
-- [ ] Check repost message length
+- [x] Check repost message length
