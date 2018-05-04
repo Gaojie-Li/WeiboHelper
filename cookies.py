@@ -5,12 +5,12 @@ import time
 import os
 import sina
 
-def saveCookies(uname, upass):
+def saveCookies(uname, upass, ip, port, proxy):
     print("Save Cookies for {0}".format(uname))
     if os.path.exists("Cookies/{0}.pkl".format(uname)):
         print("Cookies for {0} already exists".format(uname))
         return
-    driver = sina.init_driver()
+    driver = sina.init_driver(ip, port, proxy)
     driver.get("http://weibo.com")
 
     username = driver.find_element(by=By.ID, value="loginname")
@@ -28,11 +28,12 @@ def saveCookies(uname, upass):
     driver.quit()
 
 
-def loadCookies(uname):
+def loadCookies(uname, ip, port, proxy=False):
     print("Load Cookies for {0}".format(uname))
 
-    driver = sina.init_driver()
+    driver = sina.init_driver(ip, port, proxy)
     driver.get("https://www.weibo.com/")
+    time.sleep(5)
     cookies = pickle.load(open("Cookies/{0}.pkl".format(uname), "rb"))
     # print(cookies)
     for cookie in cookies:

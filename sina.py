@@ -5,13 +5,12 @@ import time
 import random
 
 
-def init_driver():
+def init_driver(ip, port, proxy=False):
     # WINDOW_WIDTH=1000
     # WINDOW_HEIGHT=800
     headless = False
     incognito = True
-    proxy = False
-    ip, port = "144.202.53.250","8080"
+    # ip, port = "144.202.53.250","8080"
 
     chrome_options = webdriver.ChromeOptions()
     if incognito:
@@ -20,6 +19,7 @@ def init_driver():
         chrome_options.add_argument('--headless')
     if proxy:
         chrome_options.add_argument('--proxy-server=http://{0}:{1}'.format(ip, port))
+        print('--proxy-server=http://{0}:{1}'.format(ip, port))
 
     driver = webdriver.Chrome(chrome_options=chrome_options)
     # driver.set_window_size(WINDOW_WIDTH,WINDOW_HEIGHT)
@@ -180,6 +180,7 @@ def getRepostFields(driver):
     return repost_field, repost_btn, repost_message
 
 def post(driver, repost_field, repost_btn, repost_message):
+    time.sleep(10 + random.randint(0,10))
     if len(repost_message) > 140:
         handleRepostTooLong(repost_message)
         driver.refresh()
@@ -191,7 +192,6 @@ def post(driver, repost_field, repost_btn, repost_message):
     repost_btn.click()
 
     driver.refresh()
-    time.sleep(10 + random.randint(0,10))
     return True
 
 
