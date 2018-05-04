@@ -18,6 +18,21 @@ To run:
 python main.py
 ```
 
+## Check local lyrics file generate by NetEase Music
+run
+```
+bash ./checkLyrics.sh
+```
+
+
+## Generate txt file for lyrics
+This will generate txt files from lrc files listed in netease.list. Currently lyrics are stored using numbers.
+- [ ] Need to find a way to get song titles
+run
+```
+python get_lyrics.py
+```
+
 ## TODO
 - [ ] Store Cookies
 - [x] Check repost message length
