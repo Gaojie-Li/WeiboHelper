@@ -1,28 +1,52 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
 import time
 import random
+import cookies
+from datetime import datetime
 
+emotions = []
+with open("Data/emotions.txt",'r') as file:
+    for line in file:
+        emotions.append(line.strip())
 
-def init_driver(ip, port, proxy=False):
+def init_driver(ip="", port="", proxy=False,headless=False):
     # WINDOW_WIDTH=1000
     # WINDOW_HEIGHT=800
-    headless = False
+    # headless = False
     incognito = True
     # ip, port = "144.202.53.250","8080"
 
-    chrome_options = webdriver.ChromeOptions()
-    if incognito:
-        chrome_options.add_argument("--incognito")
-    if headless:
-        chrome_options.add_argument('--headless')
-    if proxy:
-        chrome_options.add_argument('--proxy-server=http://{0}:{1}'.format(ip, port))
-        print('--proxy-server=http://{0}:{1}'.format(ip, port))
 
-    driver = webdriver.Chrome(chrome_options=chrome_options)
+    #TODO: allow selecting between chrome driver and firefox driver
+    #Chrome driver
+
+    # chrome_options = webdriver.ChromeOptions()
+    # if incognito:
+    #     chrome_options.add_argument("--incognito")
+    # if headless:
+    #     chrome_options.add_argument('--headless')
+    # if proxy:
+    #     chrome_options.add_argument('--proxy-server=http://{0}:{1}'.format(ip, port))
+    #     print('--proxy-server=http://{0}:{1}'.format(ip, port))
+
+    # driver = webdriver.Chrome(chrome_options=chrome_options)
     # driver.set_window_size(WINDOW_WIDTH,WINDOW_HEIGHT)
+
+
+
+    #Firefox driver
+    firefox_profile = webdriver.FirefoxProfile()
+    firefox_profile.set_preference("browser.privatebrowsing.autostart", False)
+    # firefox_profile.set_headless(headless=True)
+    
+    options = Options()
+    if headless:
+        options.add_argument('-headless')
+    driver = webdriver.Firefox(firefox_profile=firefox_profile,firefox_options=options)
+
 
     return driver
 
@@ -47,8 +71,7 @@ def login(uname, upass, driver):
 
 
 
-def readOnly(tweets, freq, count):
-    driver = init_driver()
+def readOnly(driver, tweets, freq, count):
     for i in range(count):
         print("="*20)
         print("READ ROUND {0}".format(i+1))
@@ -56,10 +79,10 @@ def readOnly(tweets, freq, count):
         for tweet_url in tweets:
             print("OPEN TWEET {0}".format(tCount+1))
             driver.get(tweet_url)
-            print("WAIT")
-            time.sleep(freq)
+            wait_time = freq + random.randint(0,2)
+            print("WAIT {0}s".format(wait_time))
+            time.sleep(wait_time)
             tCount += 1
-
     driver.quit()
     print("-----close browser-----")
 
@@ -87,80 +110,62 @@ def read(uname, upass, tweets):
 
 #Select a random song and repost with lyrics
 def repostLyrics(driver, tweet_url, lyrics, comment=False, upper_bound=5):
-    # driver = init_driver()
-    # login(uname, upass, driver)
 
     openPage(driver, tweet_url)
-
+    #randomly select a song
     lyrics_id = random.randint(0, len(lyrics)-1)
     print("SONG chosen: ", lyrics[lyrics_id])
+
+    reposts = []
+    #TODO: store previous lyrics as list object to save time reading lyrics file
     with open(lyrics[lyrics_id],"r") as file:
-        i = 0
         for line in file:
+            reposts.append(line.strip())
 
-            if i >= upper_bound:
-                break
-            #Get relative function fields
-
-            if comment:
-                btn = driver.find_element_by_id("forward_comment_opt_forwardLi")
-                btn.click()
-
-            try:
-                print("Attempting Repost({0})".format(i+1))
-                repost_field, repost_btn, repost_message = getRepostFields(driver)
-
-                temp =  line.strip() + repost_message
-                if post(driver, repost_field, repost_btn, temp):
-                    print("Repost({0}) Done".format(i+1))
-                    i += 1
-            except Exception as e:
-                print("Error: ", str(e))
-
-    driver.quit()
-
-    print("-----close browser-----")
+    repost(driver, tweet_url, reposts, comment=False, upper_bound=upper_bound)
 
 #Repost with given repost messages
 def repost(driver, tweet_url, reposts, comment=False, upper_bound=5):
-    # driver = init_driver()
-    # driver.get('http://httpbin.org/ip')
-    # print(driver.page_source)
-
-    # login(uname, upass, driver)
-
+    
     openPage(driver, tweet_url)
-    selected = set()
+    
     repostCount = 0
-    while repostCount < min(upper_bound, len(reposts)):
+    prev_selected = -1
+    prev_repost_count = 0
+    while repostCount < upper_bound:
+    # while repostCount < min(upper_bound, len(reposts)):
         try:
-            print("Attempting Repost({0})".format(repostCount+1))
+            print("{0}\tAttempting Repost({1})".format(str(datetime.now()),repostCount+1))
+            print("="*20)
             if comment:
-                btn = driver.find_element_by_id("forward_comment_opt_forwardLi")
-                btn.click()
+                # btn = driver.find_element_by_id("forward_comment_opt_forwardLi")
+                # btn = driver.find_element(by=By.XPATH,value="//*[@id=\"forward_comment_opt_forwardLi\"]")
+                # btn.click()
+                print("Skipping comment for now")
 
-            repost_field, repost_btn, repost_message = getRepostFields(driver)
+            repost_field, repost_btn, repost_message, repost_count = getRepostFields(driver)
+            
+            #Check if repost succeed
+            if repost_count > prev_repost_count:
+                print("Repost succeed?")
+                prev_repost_count = repost_count
+            else:
+                print("Repost count didn't increase")
 
-            #randomly select a repost message
-            i = random.randint(0, len(reposts)-1)
 
-            while i in selected:
-                if len(selected) == len(reposts):
-                    return
-                i = random.randint(0, len(reposts)-1)
-            selected.add(i)
+            i = repostCount % len(reposts)
 
-            temp =  reposts[i] + repost_message
-            if post(driver, repost_field, repost_btn, temp):
+            temp =  reposts[i] + emotions[random.randint(0,len(emotions)-1)] + repost_message + " "
+            if post(driver, repost_field, repost_btn, temp,first = (repostCount == 0)):
                 print("Repost({0}) Done".format(repostCount+1))
+                print("="*20)
                 repostCount += 1
 
         except Exception as e:
             print("\tERROR: ", str(e))
 
-    driver.quit()
 
-    print("-----close browser-----")
+
 
 def openPage(driver, tweet_url):
     if "?" in tweet_url:
@@ -170,30 +175,67 @@ def openPage(driver, tweet_url):
     print("Tweet url: {0}".format(tweet_url))
     driver.get(tweet_url)
 
+
+
 def getRepostFields(driver):
     repost_field = driver.find_element(by=By.XPATH, value="//*[@id=\"Pl_Official_WeiboDetail__73\"]/div/div/div/div[5]/div/div[2]/div/div/div/div/div/div[1]/textarea")
 
     repost_btn = driver.find_element(by=By.XPATH, value="//*[@id=\"Pl_Official_WeiboDetail__73\"]/div/div/div/div[5]/div/div[2]/div/div/div/div/div/div[2]/div[1]/a")
 
+    repost_count = driver.find_element(by=By.XPATH, value="//*[@id=\"Pl_Official_WeiboDetail__73\"]/div/div/div/div[1]/div[4]/div[5]/div[2]/div[5]/div[1]/ul/li[1]/span/a/span/em[2]")
+
+    print("CURRENT REPOST COUNT: ", repost_count.get_attribute("innerHTML"))
+    
+    rerepost_count = driver.find_element(by=By.XPATH,value="//*[@id=\"Pl_Official_WeiboDetail__73\"]/div/div/div/div[2]/div/ul/li[2]/a/span/span/span/em[2]")
+
+    print("二转COUNT: ",rerepost_count.get_attribute("innerHTML"))
     repost_message = repost_field.get_attribute('value')
     # print(repost_message)
-    return repost_field, repost_btn, repost_message
+    return repost_field, repost_btn, repost_message, rerepost_count.get_attribute("innerHTML")
 
-def post(driver, repost_field, repost_btn, repost_message):
-    time.sleep(10 + random.randint(0,10))
+
+
+
+def post(driver, repost_field, repost_btn, repost_message, first=False):
+    if not first:
+        sleep_time = 10 + random.gauss(0,2)
+        print("Cool Down for {0}s".format(sleep_time))
+        time.sleep(sleep_time)
     if len(repost_message) > 140:
         handleRepostTooLong(repost_message)
         driver.refresh()
         return False
-    print("\tRepost Message:\n\t{0}".format(repost_message))
     repost_field.clear()
     time.sleep(5 + random.randint(0,2))
     repost_field.send_keys(repost_message)
+    print("{0}\tRepost Message:\n\t{1}".format(str(datetime.now()),repost_message))
     repost_btn.click()
 
     driver.refresh()
     return True
 
+
+
+def postOriginal(driver, post_message):
+    driver.get("https://www.weibo.com")
+    post_field = driver.find_element(by=By.XPATH,value="//*[@id=\"v6_pl_content_publishertop\"]/div/div[2]/textarea")
+    post_btn = driver.find_element(by=By.XPATH, value="//*[@id=\"v6_pl_content_publishertop\"]/div/div[3]/div[1]/a")
+    print("Make original posts")
+    post_field.send_keys(post_message)
+    time.sleep(5 + random.randint(0,2))
+    post_btn.click()
+
+    driver.refresh()
+    return True
+
+def search(driver):
+
+    search_field=driver.find_element(by=By.XPATH,value="//*[@id=\"plc_top\"]/div/div/div[2]/input")
+    search_field.send_keys("朱正廷")
+    search_button = driver.find_element(by=By.XPATH, value="//*[@id=\"plc_top\"]/div/div/div[2]/a")
+    search_button.click()
+    time.sleep(5)
+    driver.get("https://weibo.com/u/2949487607/home")
 
 def handleRepostTooLong(message):
     print("\tERROR: Repost Message too long")
