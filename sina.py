@@ -191,7 +191,7 @@ def getRepostFields(driver):
     print("二转COUNT: ",rerepost_count.get_attribute("innerHTML"))
     repost_message = repost_field.get_attribute('value')
     # print(repost_message)
-    return repost_field, repost_btn, repost_message, rerepost_count.get_attribute("innerHTML")
+    return repost_field, repost_btn, repost_message, int(rerepost_count.get_attribute("innerHTML"))
 
 
 
@@ -210,6 +210,7 @@ def post(driver, repost_field, repost_btn, repost_message, first=False):
     repost_field.send_keys(repost_message)
     print("{0}\tRepost Message:\n\t{1}".format(str(datetime.now()),repost_message))
     repost_btn.click()
+    time.sleep(2)
 
     driver.refresh()
     return True

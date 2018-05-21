@@ -1,6 +1,7 @@
 import pickle
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 import time
 import os
 import sina
@@ -27,8 +28,12 @@ def saveCookies(uname, upass, ip="", port="", headless=False,proxy=False, force=
     password.send_keys(upass)
     smb_btn.click()
 
-    if isVerifyCodeExist():
-        inputVerifyCode()
+    time.sleep(5)
+
+    #TODO: investigate verify code issue, return True even if no verify code is required
+
+    # if isVerifyCodeExist(driver):
+    #     inputVerifyCode(driver)
 
     # sina.inputVerifyCode(driver)
 
@@ -52,8 +57,12 @@ def loadCookies(uname, ip="", port="", proxy=False,headless=False):
     # print(cookies)
     for cookie in cookies:
         driver.add_cookie(cookie)
+
     driver.refresh()
     time.sleep(5)
+
+    #update cookie
+    pickle.dump(driver.get_cookies(), open("Cookies/{0}.pkl".format(uname),"wb"))
     return driver
 
 
@@ -61,9 +70,12 @@ def loadCookies(uname, ip="", port="", proxy=False,headless=False):
 def isVerifyCodeExist(driver):
     try:# 如果成功找到验证码输入框返回true
         driver.find_element_by_css_selector('input[name="verifycode"]')
+        print("Found verify code")
         return True
     except:# 如果异常返回false
+        print("No verify code found")
         return False
+
 
 # 输入验证码部分，如果无需输入则直接返回，否则手动输入成功后返回
 def inputVerifyCode(driver):
@@ -72,7 +84,7 @@ def inputVerifyCode(driver):
     bt_logoin=driver.find_element_by_class_name('login_btn')# 登录按钮
     while isVerifyCodeExist(driver):# 如果验证码输入框一直存在，则一直循环
         print(u'请输入验证码……(输入"c"切换验证码图片)')
-        verifycode=raw_input()
+        verifycode=input()
         if verifycode=='c':
             bt_change.click()
         else:

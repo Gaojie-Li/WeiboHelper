@@ -123,6 +123,7 @@ def main():
             if "home" in driver.current_url:
                 print("登陆成功")
             else:
+                driver.quit()
                 newly_saved, driver = cookies.saveCookies(u, users[u],force=True)
             # sina.read(u, users[u], tweets)
             # sina.readOnly(tweets, 15, 30)
