@@ -1,74 +1,49 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
 import time
 import random
 import cookies
 from datetime import datetime
+import pickle
+import os
 
-emotions = []
+emojis = []
 with open("Data/emotions.txt",'r') as file:
     for line in file:
-        emotions.append(line.strip())
+        emojis.append(line.strip())
 
-def init_driver(ip="", port="", proxy=False,headless=False):
-    # WINDOW_WIDTH=1000
-    # WINDOW_HEIGHT=800
-    # headless = False
+def init_driver(ip="", port="", proxy=False,headless=False,driver="firefox"):
+
     incognito = True
-    # ip, port = "144.202.53.250","8080"
 
+    if driver == "firefox":
+        #Firefox driver
+        firefox_profile = webdriver.FirefoxProfile()
+        firefox_profile.set_preference("browser.privatebrowsing.autostart", False)
+        
+        options = Options()
+        if headless:
+            options.add_argument('-headless')
 
-    #TODO: allow selecting between chrome driver and firefox driver
-    #Chrome driver
+        driver = webdriver.Firefox(firefox_profile=firefox_profile,firefox_options=options)
+    else:
+        #Chrome driver
+        chrome_options = webdriver.ChromeOptions()
+        if incognito:
+            chrome_options.add_argument("--incognito")
+        if headless:
+            chrome_options.add_argument('--headless')
+        if proxy:
+            chrome_options.add_argument('--proxy-server=http://{0}:{1}'.format(ip, port))
+            print('--proxy-server=http://{0}:{1}'.format(ip, port))
 
-    # chrome_options = webdriver.ChromeOptions()
-    # if incognito:
-    #     chrome_options.add_argument("--incognito")
-    # if headless:
-    #     chrome_options.add_argument('--headless')
-    # if proxy:
-    #     chrome_options.add_argument('--proxy-server=http://{0}:{1}'.format(ip, port))
-    #     print('--proxy-server=http://{0}:{1}'.format(ip, port))
-
-    # driver = webdriver.Chrome(chrome_options=chrome_options)
-    # driver.set_window_size(WINDOW_WIDTH,WINDOW_HEIGHT)
-
-
-
-    #Firefox driver
-    firefox_profile = webdriver.FirefoxProfile()
-    firefox_profile.set_preference("browser.privatebrowsing.autostart", False)
-    # firefox_profile.set_headless(headless=True)
-    
-    options = Options()
-    if headless:
-        options.add_argument('-headless')
-    driver = webdriver.Firefox(firefox_profile=firefox_profile,firefox_options=options)
+        driver = webdriver.Chrome(chrome_options=chrome_options)
 
 
     return driver
-
-
-def login(uname, upass, driver):
-    login_url = "https://login.sina.com.cn/signup/signin.php?entry=sso"
-    driver.get(login_url)
-    time.sleep(5)
-
-    username = driver.find_element_by_id('username')
-    password = driver.find_element_by_id('password')
-    smb_btn = driver.find_element_by_class_name('W_btn_a')
-
-    # safe_login = driver.find_element_by_id('safe_login')
-
-    print("----login in for {0}-----".format(uname))
-    username.send_keys(uname)
-    password.send_keys(upass)
-
-    smb_btn.click()
-    time.sleep(5)
-
 
 
 def readOnly(driver, tweets, freq, count):
@@ -117,10 +92,15 @@ def repostLyrics(driver, tweet_url, lyrics, comment=False, upper_bound=5):
     print("SONG chosen: ", lyrics[lyrics_id])
 
     reposts = []
-    #TODO: store previous lyrics as list object to save time reading lyrics file
-    with open(lyrics[lyrics_id],"r") as file:
-        for line in file:
-            reposts.append(line.strip())
+    
+    #store previous lyrics as list object to save time reading lyrics file
+    if os.path.exists(lyrics[lyrics_id].replace("txt","pkl")):
+        reposts = pickle.load(open(lyrics[lyrics_id].replace("txt","pkl"), "rb"))
+    else:
+        with open(lyrics[lyrics_id],"r") as file:
+            for line in file:
+                reposts.append(line.strip())
+        pickle.dump(reposts, open(lyrics[lyrics_id].replace("txt","pkl"),"wb"))
 
     repost(driver, tweet_url, reposts, comment=False, upper_bound=upper_bound)
 
@@ -138,32 +118,37 @@ def repost(driver, tweet_url, reposts, comment=False, upper_bound=5):
             print("{0}\tAttempting Repost({1})".format(str(datetime.now()),repostCount+1))
             print("="*20)
             if comment:
-                # btn = driver.find_element_by_id("forward_comment_opt_forwardLi")
+                btn = WebDriverWait(driver,10).until(lambda driver:driver.find_element_by_id("forward_comment_opt_forwardLi"))
+                btm.click()
                 # btn = driver.find_element(by=By.XPATH,value="//*[@id=\"forward_comment_opt_forwardLi\"]")
                 # btn.click()
-                print("Skipping comment for now")
+                # print("Skipping comment for now")
 
             repost_field, repost_btn, repost_message, repost_count = getRepostFields(driver)
             
             #Check if repost succeed
             if repost_count > prev_repost_count:
-                print("Repost succeed?")
+                print("Repost succeed")
                 prev_repost_count = repost_count
             else:
                 print("Repost count didn't increase")
+                return
 
 
             i = repostCount % len(reposts)
 
-            temp =  reposts[i] + emotions[random.randint(0,len(emotions)-1)] + repost_message + " "
+            temp =  reposts[i] + emojis[random.randint(0,len(emojis)-1)] + repost_message + " "
             if post(driver, repost_field, repost_btn, temp,first = (repostCount == 0)):
                 print("Repost({0}) Done".format(repostCount+1))
                 print("="*20)
                 repostCount += 1
+            else:
+                del reposts[i]
+
+            driver.refresh()
 
         except Exception as e:
             print("\tERROR: ", str(e))
-
 
 
 
@@ -182,11 +167,17 @@ def getRepostFields(driver):
 
     repost_btn = driver.find_element(by=By.XPATH, value="//*[@id=\"Pl_Official_WeiboDetail__73\"]/div/div/div/div[5]/div/div[2]/div/div/div/div/div/div[2]/div[1]/a")
 
-    repost_count = driver.find_element(by=By.XPATH, value="//*[@id=\"Pl_Official_WeiboDetail__73\"]/div/div/div/div[1]/div[4]/div[5]/div[2]/div[5]/div[1]/ul/li[1]/span/a/span/em[2]")
+    repost_count = WebDriverWait(driver,10).until(lambda driver: driver.find_element(
+        by=By.XPATH, 
+        value="//*[@id=\"Pl_Official_WeiboDetail__73\"]/div/div/div/div[1]/div[4]/div[5]/div[2]/div[5]/div[1]/ul/li[1]/span/a/span/em[2]"))
 
     print("CURRENT REPOST COUNT: ", repost_count.get_attribute("innerHTML"))
     
-    rerepost_count = driver.find_element(by=By.XPATH,value="//*[@id=\"Pl_Official_WeiboDetail__73\"]/div/div/div/div[2]/div/ul/li[2]/a/span/span/span/em[2]")
+    # rerepost_count = driver.find_element(by=By.XPATH,value="//*[@id=\"Pl_Official_WeiboDetail__73\"]/div/div/div/div[2]/div/ul/li[2]/a/span/span/span/em[2]")
+
+    rerepost_count = WebDriverWait(driver, 10).until(lambda driver:driver.find_element(
+        by=By.XPATH,value="//*[@id=\"Pl_Official_WeiboDetail__73\"]/div/div/div/div[2]/div/ul/li[2]/a/span/span/span/em[2]"))
+
 
     print("二转COUNT: ",rerepost_count.get_attribute("innerHTML"))
     repost_message = repost_field.get_attribute('value')

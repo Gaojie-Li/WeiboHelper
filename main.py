@@ -125,6 +125,8 @@ def main():
             else:
                 driver.quit()
                 newly_saved, driver = cookies.saveCookies(u, users[u],force=True)
+                driver.close()
+                driver = cookies.loadCookies(u,headless=headless)
             # sina.read(u, users[u], tweets)
             # sina.readOnly(tweets, 15, 30)
 
