@@ -112,6 +112,7 @@ def repost(driver, tweet_url, reposts, comment=False, upper_bound=5):
     repostCount = 0
     prev_selected = -1
     prev_repost_count = 0
+    too_long = False
     while repostCount < upper_bound:
     # while repostCount < min(upper_bound, len(reposts)):
         try:
@@ -127,12 +128,13 @@ def repost(driver, tweet_url, reposts, comment=False, upper_bound=5):
             repost_field, repost_btn, repost_message, repost_count = getRepostFields(driver)
             
             #Check if repost succeed
-            if repost_count > prev_repost_count:
-                print("Repost succeed")
-                prev_repost_count = repost_count
-            else:
-                print("Repost count didn't increase")
-                return
+            if not too_long:
+                if repost_count > prev_repost_count:
+                    print("Repost succeed")
+                    prev_repost_count = repost_count
+                else:
+                    print("Repost count didn't increase")
+                    return
 
 
             i = repostCount % len(reposts)
@@ -142,8 +144,10 @@ def repost(driver, tweet_url, reposts, comment=False, upper_bound=5):
                 print("Repost({0}) Done".format(repostCount+1))
                 print("="*20)
                 repostCount += 1
+                too_long = False
             else:
                 del reposts[i]
+                too_long = True
 
             driver.refresh()
 
