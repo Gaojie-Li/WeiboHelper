@@ -16,6 +16,14 @@ MyUserName----MyPassWord
 To run:
 ```
 python main.py
+--headless: True/False 
+	whether run in headless mode or note
+--upper_bound: n 
+	max number of reposts to make
+--comment: True/False 
+	whether repost with comment
+--lyrics: True/False
+	whether repost with lyrics or with random pre-set repost messages
 ```
 
 ## Check local lyrics file generate by NetEase Music
@@ -36,7 +44,7 @@ This will generate txt files from lrc files listed in netease.list. Currently ly
 - [ ] Need to find a way to get song titles
 
 ## TODO
-- [ ] Store Cookies
+- [x] Store Cookies
 - [x] Check repost message length
 - [ ] IP issues
 - [ ] Get Page response

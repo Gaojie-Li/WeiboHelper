@@ -193,7 +193,7 @@ def getRepostFields(driver):
 
 def post(driver, repost_field, repost_btn, repost_message, first=False):
     if not first:
-        sleep_time = 10 + random.gauss(0,2)
+        sleep_time = max(1,5 + random.gauss(0,2))
         print("Cool Down for {0}s".format(sleep_time))
         time.sleep(sleep_time)
     if len(repost_message) > 140:
