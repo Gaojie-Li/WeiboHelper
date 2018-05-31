@@ -48,3 +48,4 @@ This will generate txt files from lrc files listed in netease.list. Currently ly
 - [x] Check repost message length
 - [ ] IP issues
 - [ ] Get Page response
+- [ ] Implement lyrics scrapper to update lyrics database
